@@ -1,5 +1,5 @@
 ## All proprietary files from this list, unless pinned and noted otherwise,
-## are from Redmi K60 Pro (OS2.0.212.0.VMKCNXM).
+## are from Redmi K60 Pro (OS3.0.4.0.VMKCNXM).
 
 # ACDBs
 vendor/etc/acdbdata/IDP_UPD/IDP_UPD_acdb_cal.acdb
@@ -935,6 +935,9 @@ vendor/bin/poweroffm64
 vendor/etc/init/general_service.rc
 vendor/etc/init/minidump.rc
 vendor/etc/tzlog.dict
+
+# MISAUTH
+odm/lib64/vendor.xiaomi.hardware.misauth-V1-ndk_platform.so
 
 # NFC
 odm/bin/hw/android.hardware.nfc@1.2-service-st
