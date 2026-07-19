@@ -11,9 +11,11 @@
 #include <android-base/properties.h>
 #include <android-base/unique_fd.h>
 
+#include <atomic>
+#include <fstream>
+#include <mutex>
 #include <poll.h>
 #include <sys/ioctl.h>
-#include <fstream>
 #include <thread>
 
 #include <display/drm/mi_disp.h>
@@ -143,7 +145,8 @@ class XiaomiSM8550UdfpsHandler : public UdfpsHandler {
     }
 
     void onFingerDown(uint32_t x, uint32_t y, float /*minor*/, float /*major*/) {
-        if (mAuthSuccess) return;
+        std::lock_guard<std::mutex> lock(mFingerEventMutex);
+        if (mAuthSuccess.load()) return;
         LOG(DEBUG) << __func__ << "x: " << x << ", y: " << y;
 
         mDevice->extCmd(mDevice, COMMAND_FOD_PRESS_X, x);
@@ -166,6 +169,7 @@ class XiaomiSM8550UdfpsHandler : public UdfpsHandler {
     }
 
     void onFingerUp() {
+        std::lock_guard<std::mutex> lock(mFingerEventMutex);
         LOG(DEBUG) << __func__;
 
         mDevice->extCmd(mDevice, COMMAND_FOD_PRESS_X, 0);
@@ -208,11 +212,11 @@ class XiaomiSM8550UdfpsHandler : public UdfpsHandler {
     }
 
     void onAuthenticationSucceeded() {
-        mAuthSuccess = true;
+        mAuthSuccess.store(true);
         onFingerUp();
         std::thread([this]() {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            mAuthSuccess = false;
+            mAuthSuccess.store(false);
         }).detach();
     }
 
@@ -222,7 +226,8 @@ class XiaomiSM8550UdfpsHandler : public UdfpsHandler {
     fingerprint_device_t* mDevice;
     android::base::unique_fd disp_fd_;
     android::base::unique_fd touch_fd_;
-    bool mAuthSuccess = false;
+    std::mutex mFingerEventMutex;
+    std::atomic_bool mAuthSuccess = false;
 };
 
 static UdfpsHandler* create() {
