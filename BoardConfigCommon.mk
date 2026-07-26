@@ -6,6 +6,9 @@
 
 COMMON_PATH := device/xiaomi/sm8550-common
 
+# Extra components
+include vendor/extra/BoardConfigExtra.mk
+
 # A/B
 AB_OTA_PARTITIONS := \
     boot \
